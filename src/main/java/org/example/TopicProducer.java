@@ -75,7 +75,7 @@ public class TopicProducer {
         System.out.println("please input producer message:");
         String str=bufferedReader.readLine();
 
-        TextMessage message=session.createTextMessage("producer send: "+str);
+        TextMessage message=session.createTextMessage(str);
         System.out.println(message.getText());
         message.setStringProperty("groups","10");
         producer.send(message);
@@ -84,7 +84,6 @@ public class TopicProducer {
     }
 
 
-    //TODO:to test
     public static void sendFile(Session session, MessageProducer producer)throws Exception{
         BufferedReader bufferedReader=new BufferedReader(new InputStreamReader(System.in));
         System.out.println("please input file path to send:");
@@ -95,11 +94,12 @@ public class TopicProducer {
         FileInputStream fileInputStream=new FileInputStream(file);
         byte[] buffer=new byte[fileInputStream.available()];
         fileInputStream.read(buffer);
+
         //send bytes
         BytesMessage bytesMessage=session.createBytesMessage();
         bytesMessage.writeBytes(buffer);
 
-        bytesMessage.setStringProperty("filename ", str.substring(str.lastIndexOf("/")+1));
+        bytesMessage.setStringProperty("filename", str.substring(str.lastIndexOf("\\")+1));
         producer.send(bytesMessage);
 
         fileInputStream.close();

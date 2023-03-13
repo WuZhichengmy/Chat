@@ -43,6 +43,7 @@ public class TopicConsumer {
                 if(message instanceof BytesMessage){//if file
                     BytesMessage msg=(BytesMessage)message;
                     String filename=msg.getStringProperty("filename");
+                    System.out.println("receive file: "+filename);
                     FileOutputStream outputStream=new FileOutputStream("D:\\"+filename);
 
                     //read
@@ -53,6 +54,7 @@ public class TopicConsumer {
                     }
 
                     outputStream.close();
+                    System.out.println("receive file successfully!");
                 }
                 else if(null!=message){//if text
                     System.out.println("receive message:");
