@@ -43,9 +43,9 @@ public class TopicChatClient implements ChatClient {
 
         while(!sendMsg.equalsIgnoreCase("exit")){
             if(choice.equals("1"))
-                sendMessage(sendMsg);
+                sendTopicMessage(sendMsg);
             else
-                sendFile(sendMsg);
+                sendTopicFile(sendMsg);
             sendMsg = scanner.nextLine();
         }
 
@@ -58,7 +58,7 @@ public class TopicChatClient implements ChatClient {
      * @return: void
      * 发送文字消息
      */
-    public void sendMessage(String msg)throws JMSException{
+    public void sendTopicMessage(String msg)throws JMSException{
         MessageProducer producer = session.createProducer(destination);
         TextMessage message=session.createTextMessage(msg);
         message.setStringProperty("sender",this.id);
@@ -72,7 +72,7 @@ public class TopicChatClient implements ChatClient {
      * @return: void
      * 发送文件给当前topic
      */
-    public void sendFile(String filePath)throws JMSException, IOException{
+    public void sendTopicFile(String filePath)throws JMSException, IOException{
         //read file
         File file=new File(filePath);
         String fileName=file.getName();
@@ -84,7 +84,7 @@ public class TopicChatClient implements ChatClient {
         bytesMessage.writeBytes(buffer);
         bytesMessage.setStringProperty("sender",this.id);
 
-        sendMessage("file::"+fileName);
+        sendTopicMessage("file::"+fileName);
         producer.send(bytesMessage);
         session.commit();
         System.out.println("send file: "+fileName+" successfully!");
@@ -95,20 +95,11 @@ public class TopicChatClient implements ChatClient {
      * @return: void
      * 转发文件给其它topic
      */
-    public void forwardFile(String filePath)throws JMSException, IOException{
-        System.out.println("是否转发给其它人or群发给其它人?(Y/N)");
-        Scanner scanner = new Scanner(System.in);
-        String choice = scanner.nextLine();
-
-        while (choice.equalsIgnoreCase("Y")){
-            System.out.println("输入转发对象IDor群发对象topic");
-            String newDest = scanner.nextLine();
-            Destination dest = session.createTopic(String.format(pattern,newDest));
-            MessageConsumer consumer = session.createConsumer(dest);
-            consumer.setMessageListener(new TextListener(this));
-            sendFile(filePath);
-        }
-
+    public void forwardFile(String filePath, String newDest)throws JMSException, IOException{
+        Destination dest = session.createTopic(String.format(pattern,newDest));
+        MessageConsumer consumer = session.createConsumer(dest);
+        consumer.setMessageListener(new TextListener(this));
+        sendTopicFile(filePath);
     }
 
     public String getId() {
