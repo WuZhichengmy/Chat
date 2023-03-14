@@ -20,6 +20,9 @@ public class P2PChatClient {
     private String serverAddr;
     private String id;
     private Destination destination;
+    public String lastMsg;
+    public String lastFilePath;
+    public byte lastMsgType; //上一条信息的类型，0为text，1为file
 
     public P2PChatClient(String addr, String id) throws JMSException {
         this.id = id;
@@ -38,7 +41,7 @@ public class P2PChatClient {
         destination = session.createQueue(String.format(pattern, destName));
 
         MessageConsumer consumer = session.createConsumer(session.createQueue(String.format(pattern, id)));
-        consumer.setMessageListener(new TextListener());
+        consumer.setMessageListener(new TextListener(this));
 
         System.out.println("1/发送消息，2/发送文件：");
         String c = scanner.nextLine();
@@ -96,6 +99,12 @@ public class P2PChatClient {
 class TextListener implements MessageListener {
     private String fileName;
 
+    private P2PChatClient client;
+
+    public TextListener(P2PChatClient client){
+        this.client = client;
+    }
+
     @Override
     public void onMessage(Message message) {
 
@@ -109,6 +118,8 @@ class TextListener implements MessageListener {
                     System.out.println("接收到文件：" + fileName);
                 } else{
                     System.out.println(LocalDateTime.now() + " " + text);
+                    this.client.lastMsgType = 0;
+                    this.client.lastMsg = text;
                 }
             } catch (JMSException e) {
                 throw new RuntimeException(e);
@@ -121,6 +132,8 @@ class TextListener implements MessageListener {
                 bytesMessage.readBytes(bytes);
                 Path path = Paths.get(".//" + fileName);
                 Files.write(path, bytes);
+                this.client.lastMsgType = 1;
+                this.client.lastFilePath = ".//" + fileName;
             } catch (JMSException | IOException e) {
                 e.printStackTrace();
             }
