@@ -38,7 +38,7 @@ public class P2PChatClient {
         destination = session.createQueue(String.format(pattern, destName));
 
         MessageConsumer consumer = session.createConsumer(session.createQueue(String.format(pattern, id)));
-        consumer.setMessageListener(new TextListener());
+        consumer.setMessageListener(new TextListener(this.id));
 
         System.out.println("1/发送消息，2/发送文件：");
         String c = scanner.nextLine();
@@ -95,9 +95,24 @@ public class P2PChatClient {
  */
 class TextListener implements MessageListener {
     private String fileName;
+    private String id;
+
+    public TextListener(String id){
+        this.id = id;
+    }
 
     @Override
     public void onMessage(Message message) {
+        //not to receive topicMsg sent by itself
+        try {
+            if(message.getStringProperty("sender")!=null){
+                if(message.getStringProperty("sender").equals(this.id)){
+                    return;
+                }
+            }
+        } catch (JMSException e) {
+            throw new RuntimeException(e);
+        }
 
         if(message instanceof TextMessage) {
             // 普通消息
