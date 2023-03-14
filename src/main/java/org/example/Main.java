@@ -9,7 +9,8 @@ public class Main {
         String id;
         Scanner scanner = new Scanner(System.in);
         id = scanner.nextLine();
-        P2PChatClient chatClient = new P2PChatClient("127.0.0.1:61616", id);
+        //P2PChatClient chatClient = new P2PChatClient("127.0.0.1:61616", id);
+        TopicChatClient chatClient = new TopicChatClient("127.0.0.1:61616", id);
         chatClient.start();
     }
 }
